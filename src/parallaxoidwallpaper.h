@@ -3,6 +3,8 @@
 
 #include <Plasma/Wallpaper>
 
+#include "ui_config.h"
+
 class QPropertyAnimation;
 
 
@@ -14,6 +16,8 @@ public:
     ParallaxoidWallpaper(QObject* parent, const QVariantList& args);
 
     void paint(QPainter* painter, const QRectF& exposedRect);
+    virtual void save(KConfigGroup& config);
+    virtual QWidget* createConfigurationInterface(QWidget* parent);
 
 private:
     void render();
@@ -24,13 +28,22 @@ private:
 protected:
     virtual void init(const KConfigGroup& config);
 
+Q_SIGNALS:
+    void settingsChanged(bool modified);
+
 private slots:
+    void slotChooseBackground(QWidget *);
     void slotMovedToDesktop(int desktop);
     void slotActivityChanged(const QString& activityId);
     void slotTweenFinished();
     void slotTweenUpdated(const QVariant& value);
 
+protected slots:
+    void slotSettingsModified();
+
 private:
+    Ui::Config configWidget;
+
     QSize m_desktopGrid;
     QSize m_currentCoords;
     QSize m_newCoords;

@@ -4,6 +4,7 @@
 #include <QX11Info>
 #include <NETRootInfo>
 #include <KWindowSystem>
+#include <KFileDialog>
 #include <KActivities/Consumer>
 
 #include "parallaxoidwallpaper.h"
@@ -25,6 +26,29 @@ void ParallaxoidWallpaper::paint(QPainter* painter, const QRectF& exposedRect)
     painter->drawPixmap(exposedRect, m_buffer, exposedRect);
 }
 
+void ParallaxoidWallpaper::save(KConfigGroup& config)
+{
+    config.writeEntry("background", "");
+}
+
+QWidget *ParallaxoidWallpaper::createConfigurationInterface(QWidget *parent)
+{
+    QWidget *widget = new QWidget(parent);
+    configWidget.setupUi(widget);
+
+    QGraphicsScene* scene = new QGraphicsScene(widget);
+    QPixmap pix(QPixmap::fromImage(m_background));
+    scene->addPixmap(pix);
+    configWidget.graphicsView->setScene(scene);
+
+    connect(configWidget.pushButton, SIGNAL(clicked()),
+            this, SLOT(slotChooseBackground(widget)));
+
+    connect(this, SIGNAL(settingsChanged(bool)), parent, SLOT(settingsChanged(bool)));
+
+    return widget;
+}
+
 QPointF ParallaxoidWallpaper::position()
 {
     return m_position;
@@ -39,9 +63,9 @@ void ParallaxoidWallpaper::init(const KConfigGroup& config)
 {
     Q_UNUSED(config);
 
-    m_background.load("/home/makism/Development/plasma/wallpaper.jpg");
+    m_background.load(config.readEntry("background", ""));
 
-    m_activity = KActivities::Consumer::currentActivity();
+    //    m_activity = KActivities::Consumer::currentActivity();
     m_desktop = KWindowSystem::currentDesktop();
 
     const unsigned long properties[2] = { 0, NET::WM2DesktopLayout };
@@ -157,6 +181,24 @@ void ParallaxoidWallpaper::slotTweenUpdated(const QVariant& value)
 
     render();
     emit update(boundingRect());
+}
+
+void ParallaxoidWallpaper::slotSettingsModified()
+{
+    emit settingsChanged(true);
+}
+
+void ParallaxoidWallpaper::slotChooseBackground(QWidget *w)
+{
+    QString file = KFileDialog::getOpenFileName(KUrl(), "*.png *.jpeg *.jpg *.xcf *.svg *.svgz *.bmp", w, "Select background image");
+
+    if (!file.isEmpty()) {
+        m_background.load(file);
+
+        configWidget.graphicsView->scene()->clear();
+        QPixmap pix = QPixmap::fromImage(m_background);
+        configWidget.graphicsView->scene()->addPixmap(pix);
+    }
 }
 
 #include "parallaxoidwallpaper.moc"

@@ -11,8 +11,9 @@ set(parallaxoidwallpaper_SRCS
     parallaxoidwallpaper.cpp
 )
 
+kde4_add_ui_files(parallaxoidwallpaper_SRCS config.ui)
 kde4_add_plugin(parallaxoidwallpaper ${parallaxoidwallpaper_SRCS})
-target_link_libraries(parallaxoidwallpaper ${KDE4_PLASMA_LIBS})
+target_link_libraries(parallaxoidwallpaper ${KDE4_PLASMA_LIBS} ${KDE4_KFILE_LIBS})
 
 install(TARGETS parallaxoidwallpaper DESTINATION ${PLUGIN_INSTALL_DIR})
 install(FILES parallaxoidwallpaper.desktop DESTINATION ${SERVICES_INSTALL_DIR})
